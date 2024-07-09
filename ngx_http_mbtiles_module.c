@@ -198,7 +198,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     unsigned int  sqlite3_ret;
     unsigned char *tile_content;
     unsigned int  tile_read_bytes;
-    unsigned long tile_zoom, tile_row, tile_column, tms_tile_row;
+    unsigned int  tile_zoom, tile_row, tile_column, tms_tile_row;
 
     ngx_http_mbtiles_loc_conf_t *mbtiles_config;
     mbtiles_config = ngx_http_get_module_loc_conf(r, ngx_http_mbtiles_module);
@@ -260,7 +260,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
 
     /* execute query */
     if (SQLITE_ROW != (sqlite3_ret = sqlite3_step(sqlite_stmt))) {
-	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%d, column=%d, row=%d (TMS row: %d)", sqlite3_ret, tile_zoom, tile_column, tile_row, tms_tile_row);
+	// ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%d, column=%d, row=%d (TMS row: %d)", sqlite3_ret, tile_zoom, tile_column, tile_row, tms_tile_row);
         sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_NO_CONTENT;
@@ -285,10 +285,8 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     /* set the content-type header. */
     if (ngx_http_set_content_type(r) == NGX_OK) {
         // TODO: Read the content type from the mbtiles file and adjust mime type accordingly
-        //r->headers_out.content_type.len = sizeof("application/octet-stream") - 1;
-        //r->headers_out.content_type.data = (u_char *) "application/octet-stream";
-	r->headers_out.content_type.len = sizeof("application/vnd.mapbox-vector-tile") - 1;
-        r->headers_out.content_type.data = (u_char *) "application/vnd.mapbox-vector-tile";
+        r->headers_out.content_type.len = sizeof("image/png") - 1;
+        r->headers_out.content_type.data = (u_char *) "image/png";
         r->headers_out.content_encoding = ngx_list_push(&r->headers_out.headers);
         if (r->headers_out.content_encoding == NULL) {
             return NGX_ERROR;
