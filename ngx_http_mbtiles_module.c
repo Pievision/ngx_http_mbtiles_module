@@ -187,6 +187,7 @@ ngx_module_t ngx_http_mbtiles_module = {
 static ngx_int_t
 ngx_http_mbtiles_handler(ngx_http_request_t *r)
 {
+    ngx_int_t     rc;
     ngx_buf_t     *b;
     ngx_chain_t   out;
     ngx_str_t     mbtiles_file;
@@ -232,9 +233,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
         free(mbtiles_file_path);
         return NGX_HTTP_NOT_FOUND;
     }
-	else {
-		ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Opening '%s' success", mbtiles_file_path);
-	}
+
     free(mbtiles_file_path);
 
     /* prepare our sql statement */
@@ -290,15 +289,15 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
         // TODO: Read the content type from the mbtiles file and adjust mime type accordingly
         r->headers_out.content_type.len = sizeof("image/png") - 1;
         r->headers_out.content_type.data = (u_char *) "image/png";
-        r->headers_out.content_encoding = ngx_list_push(&r->headers_out.headers);
-        if (r->headers_out.content_encoding == NULL) {
-            return NGX_ERROR;
-        }
-        r->headers_out.content_encoding->hash = 1;
-        r->headers_out.content_encoding->key.len = sizeof("Content-Encoding") - 1;
-        r->headers_out.content_encoding->key.data = (u_char *) "Content-Encoding";
-        r->headers_out.content_encoding->value.len = sizeof("gzip") - 1;
-        r->headers_out.content_encoding->value.data = (u_char *) "gzip";
+        //r->headers_out.content_encoding = ngx_list_push(&r->headers_out.headers);
+        //if (r->headers_out.content_encoding == NULL) {
+        //    return NGX_ERROR;
+        //}
+        //r->headers_out.content_encoding->hash = 1;
+        //r->headers_out.content_encoding->key.len = sizeof("Content-Encoding") - 1;
+        //r->headers_out.content_encoding->key.data = (u_char *) "Content-Encoding";
+        //r->headers_out.content_encoding->value.len = sizeof("gzip") - 1;
+        //r->headers_out.content_encoding->value.data = (u_char *) "gzip";
     } else {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -323,8 +322,10 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     /* sending the headers for the reply. */
     r->headers_out.status = NGX_HTTP_OK;
     r->headers_out.content_length_n = tile_read_bytes;
-    ngx_http_send_header(r);
-
+    rc = ngx_http_send_header(r);
+	if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
+        return rc;
+    }
     return ngx_http_output_filter(r, &out);
 } /* ngx_http_mbtiles_handler */
 
