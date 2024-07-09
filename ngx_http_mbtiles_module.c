@@ -232,6 +232,9 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
         free(mbtiles_file_path);
         return NGX_HTTP_NOT_FOUND;
     }
+	else {
+		ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Opening '%s' success", mbtiles_file_path);
+	}
     free(mbtiles_file_path);
 
     /* prepare our sql statement */
